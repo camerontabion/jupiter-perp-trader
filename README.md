@@ -1,6 +1,6 @@
 # Jupiter Perp Trader
 
-A decentralized perpetual futures trading interface built on the Jupiter Protocol.
+A perpetual futures trading interface built on the Jupiter Protocol.
 
 ## Tech Stack
 
