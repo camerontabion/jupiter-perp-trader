@@ -1,0 +1,2838 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Jupiter Perpetuals API Specification",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "https://perps-api.jup.ag/v1"
+    }
+  ],
+  "paths": {
+    "/market-stats": {
+      "description": "Fetches 24-hour market stats for the given market",
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mint",
+            "description": "Mint address for the given market",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "So11111111111111111111111111111111111111112",
+                "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+                "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh"
+              ],
+              "description": "Mint address for the given market"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "price": {
+                      "type": "string",
+                      "description": "Current USD price for the given market",
+                      "example": "123.00"
+                    },
+                    "priceChange24H": {
+                      "type": "string",
+                      "description": "Current USD 24-hour price change (%) for the given market",
+                      "example": "-20.00"
+                    },
+                    "priceHigh24H": {
+                      "type": "string",
+                      "description": "USD value for the 24-hour high price for the given market",
+                      "example": "123.00"
+                    },
+                    "priceLow24H": {
+                      "type": "string",
+                      "description": "USD value for the 24-hour low price for the given market",
+                      "example": "123.00"
+                    },
+                    "volume": {
+                      "type": "string",
+                      "description": "USD value for the 24-hour total volume for the given market",
+                      "example": "48123049.00"
+                    }
+                  },
+                  "required": [
+                    "price",
+                    "priceChange24H",
+                    "priceHigh24H",
+                    "priceLow24H",
+                    "volume"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/expired": {
+      "description": "Fetches expired orders for the wallet address",
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "walletAddress",
+            "description": "Public key for the wallet to fetch expired orders",
+            "schema": {
+              "type": "string",
+              "description": "Public key for the wallet to fetch expired orders"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "serializedTxs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "serializedTxBase64": {
+                            "type": "string",
+                            "description": "The serialized transaction (base64 encoded) containing the instructions and given parameters for the close position request instruction. The transaction can be deserialized, signed by the owner of `walletAddress` and submitted onchain to close the position request"
+                          },
+                          "positionRequestPubkey": {
+                            "type": "string",
+                            "description": "The public key / address for the position request."
+                          }
+                        },
+                        "required": [
+                          "serializedTxBase64",
+                          "positionRequestPubkey"
+                        ]
+                      },
+                      "description": "An array of base64-serialized transactions and the `positionRequestPubkey` to close all expired orders."
+                    },
+                    "txMetadata": {
+                      "type": "object",
+                      "properties": {
+                        "blockhash": {
+                          "type": "string",
+                          "description": "The blockhash used for the serialized transaction. This blockhash must be used when submitting the signed close position request transaction."
+                        },
+                        "lastValidBlockHeight": {
+                          "type": "string",
+                          "description": "The block height used for the serialized transaction. This block height must be used when submitting the signed close position request transaction."
+                        }
+                      },
+                      "required": [
+                        "blockhash",
+                        "lastValidBlockHeight"
+                      ],
+                      "description": "Contains blockhash metadata for the serialized transaction to submit and confirm the transactions."
+                    }
+                  },
+                  "required": [
+                    "serializedTxs",
+                    "txMetadata"
+                  ],
+                  "description": "An array of base64-serialized transactions and transaction metadata to close all expired orders."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/positions": {
+      "description": "Fetches the open positions for the given wallet address",
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "walletAddress",
+            "description": "Public key for the wallet to fetch trades",
+            "schema": {
+              "type": "string",
+              "description": "Public key for the wallet to fetch trades"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "dataList": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "borrowFees": {
+                            "type": "string",
+                            "description": "The outstanding borrow fees for the position in the integer format corresponding to the 6 decimals places used by the USDC and USDT token mint",
+                            "example": "100000"
+                          },
+                          "borrowFeesUsd": {
+                            "type": "string",
+                            "description": "The outstanding borrow fees (USD) for the position",
+                            "example": "10.00"
+                          },
+                          "closeFees": {
+                            "type": "string",
+                            "description": "The fee for closing the position (0.06%) in the integer format corresponding to the 6 decimals places used by the USDC and USDT token mint",
+                            "example": "100000"
+                          },
+                          "closeFeesUsd": {
+                            "type": "string",
+                            "description": "The fee (USD) for closing the position (0.06%)",
+                            "example": "10.00"
+                          },
+                          "collateral": {
+                            "type": "string",
+                            "description": "USD value of the position's collateral size",
+                            "example": "250.00"
+                          },
+                          "collateralMint": {
+                            "type": "string",
+                            "description": "The mint address for the position's collateral token. 'SOL' = 'So11111111111111111111111111111111111111112', 'ETH' = '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs', 'BTC' = '3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh', 'USDC' = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'USDT' = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'",
+                            "example": "So11111111111111111111111111111111111111112"
+                          },
+                          "createdTime": {
+                            "type": "number",
+                            "description": "UNIX timestamp of when the trade was created",
+                            "example": 1722851463
+                          },
+                          "entryPrice": {
+                            "type": "string",
+                            "description": "USD value of the position's entry price",
+                            "example": "123.45"
+                          },
+                          "leverage": {
+                            "type": "string",
+                            "description": "Leverage amount for the position",
+                            "example": "21.30"
+                          },
+                          "liquidationPrice": {
+                            "type": "string",
+                            "description": "USD value of the position's liquidation price",
+                            "example": "123.45"
+                          },
+                          "marketMint": {
+                            "type": "string",
+                            "description": "The asset or market being traded against for the position. 'SOL' = 'So11111111111111111111111111111111111111112', 'ETH' = '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs', 'BTC' = '3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh'",
+                            "example": "So11111111111111111111111111111111111111112"
+                          },
+                          "markPrice": {
+                            "type": "string",
+                            "description": "USD value of the position's mark price",
+                            "example": "123.45"
+                          },
+                          "openFees": {
+                            "type": "string",
+                            "description": "The fee for opening the position (0.06%) in the integer format corresponding to the 6 decimals places used by the USDC and USDT token mint",
+                            "example": "100000"
+                          },
+                          "openFeesUsd": {
+                            "type": "string",
+                            "description": "The fee (USD) for opening the position (0.06%)",
+                            "example": "10.00"
+                          },
+                          "pnlAfterFees": {
+                            "type": "string",
+                            "description": "The position's PNL after fees in the integer format corresponding to the 6 decimals places used by the USDC and USDT token mint",
+                            "example": "10.45"
+                          },
+                          "pnlAfterFeesUsd": {
+                            "type": "string",
+                            "description": "The position's PNL (USD) after fees",
+                            "example": "10.45"
+                          },
+                          "pnlBeforeFees": {
+                            "type": "string",
+                            "description": "The position's PNL before fees in the integer format corresponding to the 6 decimals places used by the USDC and USDT token mint",
+                            "example": "10.45"
+                          },
+                          "pnlBeforeFeesUsd": {
+                            "type": "string",
+                            "description": "The position's PNL (USD) before fees",
+                            "example": "10.45"
+                          },
+                          "pnlChangePctAfterFees": {
+                            "type": "string",
+                            "description": "The position's PNL change percentage after fees"
+                          },
+                          "pnlChangePctBeforeFees": {
+                            "type": "string",
+                            "description": "The position's PNL change percentage before fees"
+                          },
+                          "positionPubkey": {
+                            "type": "string",
+                            "description": "The public key / address for the position",
+                            "example": "815wh1VLC8D7ZWMa3uB7GgjHFetANuML2dPrJiLV1nVF"
+                          },
+                          "side": {
+                            "type": "string",
+                            "enum": [
+                              "long",
+                              "short"
+                            ]
+                          },
+                          "size": {
+                            "type": "string",
+                            "description": "USD value of the position's trade size (including leverage)",
+                            "example": "12345.68"
+                          },
+                          "sizeTokenAmount": {
+                            "type": "string",
+                            "description": "Raw token amount for the position's size scaled to the custody token's mint decimals",
+                            "example": "250000000"
+                          },
+                          "totalFees": {
+                            "type": "string",
+                            "description": "The total fees for the position in the integer format corresponding to the 6 decimals places used by the USDC and USDT token mint.",
+                            "example": "100000"
+                          },
+                          "totalFeesUsd": {
+                            "type": "string",
+                            "description": "The total fees (USD) for the position.",
+                            "example": "10.00"
+                          },
+                          "tpslRequestsLegacy": {
+                            "type": "object",
+                            "properties": {
+                              "sl": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "desiredMint": {
+                                    "type": "string",
+                                    "description": "The mint address for the TP position request account's desired mint"
+                                  },
+                                  "positionRequestPubkey": {
+                                    "type": "string",
+                                    "description": "The public key / address for the TP position request account"
+                                  },
+                                  "triggerPrice": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "description": "The trigger price for the SL request in integer format corresponding to the 6 decimals places used by the USDC and USDT token mint",
+                                    "example": "20000000"
+                                  },
+                                  "triggerPriceUsd": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "description": "The trigger price (USD) for the SL request",
+                                    "example": "20000000"
+                                  }
+                                },
+                                "required": [
+                                  "desiredMint",
+                                  "positionRequestPubkey",
+                                  "triggerPrice",
+                                  "triggerPriceUsd"
+                                ],
+                                "description": "This field is null if a SL request does not exist for this position."
+                              },
+                              "tp": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "desiredMint": {
+                                    "type": "string",
+                                    "description": "The mint address for the TP position request account's desired mint"
+                                  },
+                                  "positionRequestPubkey": {
+                                    "type": "string",
+                                    "description": "The public key / address for the TP position request account"
+                                  },
+                                  "triggerPrice": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "description": "The trigger price for the TP request in integer format corresponding to the 6 decimals places used by the USDC and USDT token mint",
+                                    "example": "20000000"
+                                  },
+                                  "triggerPriceUsd": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "description": "The trigger price (USD) for the TP request",
+                                    "example": "20000000"
+                                  }
+                                },
+                                "required": [
+                                  "desiredMint",
+                                  "positionRequestPubkey",
+                                  "triggerPrice",
+                                  "triggerPriceUsd"
+                                ],
+                                "description": "This field is null if a TP request does not exist for this position."
+                              }
+                            },
+                            "description": "DEPRECATED: The active TP / SL requests for the position"
+                          },
+                          "tpslRequests": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "desiredMint": {
+                                  "type": "string",
+                                  "description": "The mint address for the TP position request account's desired mint"
+                                },
+                                "positionRequestPubkey": {
+                                  "type": "string",
+                                  "description": "The public key / address for the TP position request account"
+                                },
+                                "requestType": {
+                                  "type": "string",
+                                  "enum": [
+                                    "tp",
+                                    "sl"
+                                  ],
+                                  "description": "Returns `tp` if it is a take profit request, `sl` if it is a stop loss request"
+                                },
+                                "sizeUsd": {
+                                  "type": "string",
+                                  "description": "The close size for the TP / SL in integer format corresponding to the 6 decimals places used by the USDC and USDT token mint",
+                                  "example": "1234000000"
+                                },
+                                "sizeUsdFormatted": {
+                                  "type": "string",
+                                  "description": "The formatted close size for the TP / SL in integer format corresponding to the 6 decimals places used by the USDC and USDT token mint",
+                                  "example": "12.34"
+                                },
+                                "sizePercentage": {
+                                  "type": "string",
+                                  "description": "The percentage / ratio TP / SL size to the position size",
+                                  "example": "12.34"
+                                },
+                                "triggerPrice": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "description": "The trigger price for the TP / SL request in integer format corresponding to the 6 decimals places used by the USDC and USDT token mint",
+                                  "example": "20000000"
+                                },
+                                "triggerPriceUsd": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "description": "The trigger price (USD) for the TP / SL request",
+                                  "example": "20000000"
+                                }
+                              },
+                              "required": [
+                                "desiredMint",
+                                "positionRequestPubkey",
+                                "requestType",
+                                "sizeUsd",
+                                "sizeUsdFormatted",
+                                "sizePercentage",
+                                "triggerPrice",
+                                "triggerPriceUsd"
+                              ]
+                            },
+                            "description": "The active TP / SL requests for the position"
+                          },
+                          "updatedTime": {
+                            "type": "number",
+                            "example": 1722851463
+                          },
+                          "value": {
+                            "type": "string",
+                            "description": "USD value of the currently open position including fees incurred by opening, closing, and borrowing the position",
+                            "example": "120.00"
+                          }
+                        },
+                        "required": [
+                          "borrowFees",
+                          "borrowFeesUsd",
+                          "closeFees",
+                          "closeFeesUsd",
+                          "collateral",
+                          "collateralMint",
+                          "createdTime",
+                          "entryPrice",
+                          "leverage",
+                          "liquidationPrice",
+                          "marketMint",
+                          "markPrice",
+                          "openFees",
+                          "openFeesUsd",
+                          "pnlAfterFees",
+                          "pnlAfterFeesUsd",
+                          "pnlBeforeFees",
+                          "pnlBeforeFeesUsd",
+                          "pnlChangePctAfterFees",
+                          "pnlChangePctBeforeFees",
+                          "positionPubkey",
+                          "side",
+                          "size",
+                          "sizeTokenAmount",
+                          "totalFees",
+                          "totalFeesUsd",
+                          "tpslRequestsLegacy",
+                          "tpslRequests",
+                          "updatedTime",
+                          "value"
+                        ]
+                      }
+                    },
+                    "count": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "dataList",
+                    "count"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/positions/close-all": {
+      "description": "Returns an array of serialized transactions to close all open positions for the given wallet address.",
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "walletAddress": {
+                    "type": "string",
+                    "description": "The wallet address / public key for the trader to close all open positions"
+                  }
+                },
+                "required": [
+                  "walletAddress"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "serializedTxs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "serializedTxBase64": {
+                            "type": "string",
+                            "description": "The serialized transaction (base64 encoded) containing the instructions and given parameters for the close position instruction. The transaction can be deserialized, signed by the owner of `walletAddress` and submitted onchain to close the position."
+                          },
+                          "positionRequestPubkey": {
+                            "type": "string",
+                            "description": "The public key / address for the position request to close the position."
+                          }
+                        },
+                        "required": [
+                          "serializedTxBase64",
+                          "positionRequestPubkey"
+                        ]
+                      },
+                      "description": "An array of base64-serialized transactions and the `positionRequestPubkey` to close all positions."
+                    },
+                    "txMetadata": {
+                      "type": "object",
+                      "properties": {
+                        "blockhash": {
+                          "type": "string",
+                          "description": "The blockhash used for the serialized transaction. This blockhash must be used when submitting the signed close position transaction."
+                        },
+                        "lastValidBlockHeight": {
+                          "type": "string",
+                          "description": "The block height used for the serialized transaction. This block height must be used when submitting the signed close position transaction."
+                        }
+                      },
+                      "required": [
+                        "blockhash",
+                        "lastValidBlockHeight"
+                      ],
+                      "description": "Contains blockhash metadata for the serialized transaction to submit and confirm the transactions."
+                    }
+                  },
+                  "required": [
+                    "serializedTxs",
+                    "txMetadata"
+                  ],
+                  "description": "An array of base64-serialized transactions and transaction metadata to close all positions."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/positions/collateral-limits": {
+      "description": "Returns the minimum and maximum token amounts for collateral deposits, as well as the maximum token amount for collateral withdrawals.",
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "inputMint",
+            "description": "The mint address for the input token to deposit as collateral (e.g. 'So11111111111111111111111111111111111111112' for 'SOL')",
+            "schema": {
+              "type": "string",
+              "description": "The mint address for the input token to deposit as collateral (e.g. 'So11111111111111111111111111111111111111112' for 'SOL')",
+              "example": "So11111111111111111111111111111111111111112"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "positionPubkey",
+            "description": "The public key for the open position. Use the `GET positions` endpoint to fetch the public key for the trader's open positions.",
+            "schema": {
+              "type": "string",
+              "description": "The public key for the open position. Use the `GET positions` endpoint to fetch the public key for the trader's open positions.",
+              "example": "5HHB8sCKjWPU2zr3p4Lg49mQiaPQiHbCjHW7jgVzp583"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "maxCollateralDepositTokenAmount": {
+                      "type": "string",
+                      "description": "The maximum token amount that can be deposited as collateral for the given input mint token."
+                    },
+                    "maxCollateralDepositUsd": {
+                      "type": "string",
+                      "description": "The maximum amount (USD) that can be deposited as collateral for the given input mint token. The value is an integer corresponding to the 6 decimals places used by the USDC and USDT token mint."
+                    },
+                    "minCollateralDepositTokenAmount": {
+                      "type": "string",
+                      "description": "The minimum token amount that can be deposited as collateral for the given input mint token."
+                    },
+                    "minCollateralDepositUsd": {
+                      "type": "string",
+                      "description": "The minimum amount (USD) that can be deposited as collateral for the given input mint token. The value is an integer corresponding to the 6 decimals places used by the USDC and USDT token mint."
+                    },
+                    "maxCollateralWithdrawalTokenAmount": {
+                      "type": "string",
+                      "description": "The maximum collateral token amount that can be withdrawed from the open position."
+                    },
+                    "maxCollateralWithdrawalUsd": {
+                      "type": "string",
+                      "description": "The maximum collateral (USD) that can be withdrawed from the open position. The value is an integer corresponding to the 6 decimals places used by the USDC and USDT token mint."
+                    },
+                    "minCollateralWithdrawalTokenAmount": {
+                      "type": "string",
+                      "description": "The minimum collateral token amount that can be withdrawed from the open position."
+                    },
+                    "minCollateralWithdrawalUsd": {
+                      "type": "string",
+                      "description": "The minimum collateral (USD) that can be withdrawed from the open position. The value is an integer corresponding to the 6 decimals places used by the USDC and USDT token mint."
+                    }
+                  },
+                  "required": [
+                    "maxCollateralDepositTokenAmount",
+                    "maxCollateralDepositUsd",
+                    "minCollateralDepositTokenAmount",
+                    "minCollateralDepositUsd",
+                    "maxCollateralWithdrawalTokenAmount",
+                    "maxCollateralWithdrawalUsd",
+                    "minCollateralWithdrawalTokenAmount",
+                    "minCollateralWithdrawalUsd"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/positions/decrease": {
+      "description": "Uses the `decreasePositionParams` object from calling `GET /positions/decrease/quote` and returns a base64-serialized transaction for the request, the position request PDA, and the position PDA that acts as the unique identifier for the position.",
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "collateralUsdDelta": {
+                    "type": "string",
+                    "description": "The amount of collateral to withdraw in USD from the position. Must be an integer representing the USD amount multiplied by 10^6 (1 million) to align with the 6 decimal places used for USDC/USDT tokens on-chain. For example, to decrease by $10 USD, set 'collateralUsdDelta' to 10000000; for $20.50 USD, set 'collateralUsdDelta' to 20500000.",
+                    "example": "10000000"
+                  },
+                  "desiredMint": {
+                    "type": "string",
+                    "enum": [
+                      "So11111111111111111111111111111111111111112",
+                      "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+                      "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+                      "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                      "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                    ],
+                    "description": "The mint address for the token to be used when withdrawing collateral or closing position.",
+                    "example": "So11111111111111111111111111111111111111112"
+                  },
+                  "entirePosition": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "When set to `true`, this will close the position and transfer the remaining collateral and realised profits (if the position is profitable) to the trader.",
+                    "example": false
+                  },
+                  "maxSlippageBps": {
+                    "type": "string",
+                    "default": "200",
+                    "description": "The maximum slippage in (BPS) for the token swap (if required) and the token price when executing the increase position trade",
+                    "example": "100"
+                  },
+                  "positionPubkey": {
+                    "type": "string",
+                    "description": "The public key for the open position. Use the `GET positions` endpoint to fetch the public key for the trader's open positions.",
+                    "example": "5HHB8sCKjWPU2zr3p4Lg49mQiaPQiHbCjHW7jgVzp583"
+                  },
+                  "sizeUsdDelta": {
+                    "type": "string",
+                    "description": "The amount in USD to decrease the position size by. Must be an integer representing the USD amount multiplied by 10^6 (1 million) to align with the 6 decimal places used for USDC/USDT tokens on-chain. For example, to decrease by $10 USD, set 'sizeUsdDelta' to 10000000; for $20.50 USD, set 'sizeUsdDelta' to 20500000.",
+                    "example": "10000000"
+                  }
+                },
+                "required": [
+                  "collateralUsdDelta",
+                  "desiredMint",
+                  "positionPubkey",
+                  "sizeUsdDelta"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "positionPubkey": {
+                      "type": "string",
+                      "description": "The unique identifier (i.e. a program derived address) for the position account. Use this address to find the position account onchain."
+                    },
+                    "positionRequestPubkey": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "The unique identifier (i.e. a program derived address) for the position request. Use this address to find the position request account onchain. Returns null if `requireKeeperSignature` is true."
+                    },
+                    "quote": {
+                      "type": "object",
+                      "properties": {
+                        "closeFeeUsd": {
+                          "type": "string",
+                          "description": "The base close fee (USD) for closing the position or withdrawing collateral from the position.",
+                          "example": "0.0063"
+                        },
+                        "feeUsd": {
+                          "type": "string",
+                          "description": "The total fee (USD) for closing or withdrawing collateral from the position including base fees, borrowing fees, and price impact fees",
+                          "example": "0.0063"
+                        },
+                        "leverage": {
+                          "type": "string",
+                          "description": "The leverage amount for the position after withdrawing collateral",
+                          "example": "2.99"
+                        },
+                        "liquidationPriceUsd": {
+                          "type": "string",
+                          "description": "The liquidation price (USD) for the position after withdrawing collateral",
+                          "example": "13.24"
+                        },
+                        "outstandingBorrowFeeUsd": {
+                          "type": "string",
+                          "description": "The outstanding borrow fees due / to be paid on closing the position",
+                          "example": "0.1000"
+                        },
+                        "pnlAfterFees": {
+                          "type": "string",
+                          "description": "The position's PNL after fees in the integer format corresponding to the 6 decimals places used by the USDC and USDT token mint",
+                          "example": "1045000"
+                        },
+                        "pnlAfterFeesPercent": {
+                          "type": "string",
+                          "description": "The PNL change (%) from closing the position after fees.",
+                          "example": "-20.24"
+                        },
+                        "pnlAfterFeesUsd": {
+                          "type": "string",
+                          "description": "The position's PNL (USD) after fees",
+                          "example": "10.45"
+                        },
+                        "pnlBeforeFees": {
+                          "type": "string",
+                          "description": "The position's PNL before fees in the integer format corresponding to the 6 decimals places used by the USDC and USDT token mint",
+                          "example": "1045000"
+                        },
+                        "pnlBeforeFeesPercent": {
+                          "type": "string",
+                          "description": "The PNL change (%) from closing the position before fees.",
+                          "example": "20.24"
+                        },
+                        "pnlBeforeFeesUsd": {
+                          "type": "string",
+                          "description": "The position's PNL (USD) before fees",
+                          "example": "10.45"
+                        },
+                        "positionCollateralSizeUsd": {
+                          "type": "string",
+                          "description": "The total position collateral size (USD) after withdrawing",
+                          "example": "1124.45"
+                        },
+                        "positionSizeUsd": {
+                          "type": "string",
+                          "description": "The total position size (USD) including leverage after withdrawing",
+                          "example": "1124.45"
+                        },
+                        "priceImpactFeeBps": {
+                          "type": "string",
+                          "description": "The price impact fee bps for closing the position based on the position size. For more info on how the price impact fee calculation works: https://www.jupresear.ch/t/jupiter-perpetuals-price-impact-fee-mechanism/17140",
+                          "example": "1.3301"
+                        },
+                        "priceImpactFeeUsd": {
+                          "type": "string",
+                          "description": "The price impact fee (USD) for closing the position based on the position size. For more info on how the price impact fee calculation works: https://www.jupresear.ch/t/jupiter-perpetuals-price-impact-fee-mechanism/17140",
+                          "example": "1.3301"
+                        },
+                        "side": {
+                          "type": "string",
+                          "enum": [
+                            "long",
+                            "short"
+                          ],
+                          "description": "The position side",
+                          "example": "long"
+                        },
+                        "transferTokenMint": {
+                          "type": "string",
+                          "description": "The mint address for the token used to transfer the collateral withdrawal or closing position amount",
+                          "example": "So11111111111111111111111111111111111111112"
+                        },
+                        "transferAmountToken": {
+                          "type": "string",
+                          "description": "The collateral token amount to transfer to the owner after withdrawing collateral or closing the position",
+                          "example": "100000000"
+                        },
+                        "transferAmountUsd": {
+                          "type": "string",
+                          "description": "The collateral token amount in USD to transfer to the owner withdrawing collateral or closing the position",
+                          "example": "1099.95"
+                        }
+                      },
+                      "required": [
+                        "closeFeeUsd",
+                        "feeUsd",
+                        "leverage",
+                        "liquidationPriceUsd",
+                        "outstandingBorrowFeeUsd",
+                        "pnlAfterFees",
+                        "pnlAfterFeesPercent",
+                        "pnlAfterFeesUsd",
+                        "pnlBeforeFees",
+                        "pnlBeforeFeesPercent",
+                        "pnlBeforeFeesUsd",
+                        "positionCollateralSizeUsd",
+                        "positionSizeUsd",
+                        "priceImpactFeeBps",
+                        "priceImpactFeeUsd",
+                        "side",
+                        "transferTokenMint",
+                        "transferAmountToken",
+                        "transferAmountUsd"
+                      ],
+                      "description": "The 'quote' object contains the position's updated values (leverage, size, collateral size, etc.) after withdrawing collateral."
+                    },
+                    "requireKeeperSignature": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ],
+                      "description": ""
+                    },
+                    "serializedTxBase64": {
+                      "type": "string",
+                      "description": "The serialized transaction (base64 encoded) containing the instructions and given parameters for the decrease position request. The transaction can be deserialized, signed by the owner of `walletAddress` and submitted onchain to execute the decrease position request"
+                    },
+                    "txMetadata": {
+                      "type": "object",
+                      "properties": {
+                        "blockhash": {
+                          "type": "string",
+                          "description": "The blockhash used for the serialized transaction. This blockhash must be used when submitting the signed decrease position transaction."
+                        },
+                        "lastValidBlockHeight": {
+                          "type": "string",
+                          "description": "The block height used for the serialized transaction. This block height must be used when submitting the signed decrease position transaction."
+                        },
+                        "transactionFeeLamports": {
+                          "type": "string",
+                          "description": "The transaction fee (in lamports) in decimal format.",
+                          "example": "0.5"
+                        },
+                        "accountRentLamports": {
+                          "type": "string",
+                          "description": "The account rent (in lamports) for the transaction",
+                          "example": "0.5"
+                        }
+                      },
+                      "required": [
+                        "blockhash",
+                        "lastValidBlockHeight",
+                        "transactionFeeLamports",
+                        "accountRentLamports"
+                      ],
+                      "description": "Contains relevant metadata for the serialized transaction."
+                    }
+                  },
+                  "required": [
+                    "positionPubkey",
+                    "quote",
+                    "serializedTxBase64",
+                    "txMetadata"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/positions/increase": {
+      "description": "Uses the `increasePositionParams` object from calling `GET /positions/increase/quote` and returns a base64-serialized transaction for the request, the position request PDA, and the position PDA that acts as the unique identifier for the position.",
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "collateralMint": {
+                    "type": "string",
+                    "enum": [
+                      "So11111111111111111111111111111111111111112",
+                      "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+                      "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+                      "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                      "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                    ],
+                    "description": "The mint address for the collateral token (e.g. 'So11111111111111111111111111111111111111112' for 'SOL'). 'collateralMint' must be the same as 'marketMint' for long positions, or USDC (EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v) for short positions.",
+                    "example": "So11111111111111111111111111111111111111112"
+                  },
+                  "collateralTokenDelta": {
+                    "type": "string",
+                    "description": "The amount of tokens for the input mint to open the position or deposit collateral. NOTE: The token amount needs to be an integer and must conform to the token mint decimals specified onchain. For example, to deposit 1 'SOL', the 'collateralTokenDelta' value would be equal to '1000000000'",
+                    "example": "1000000000"
+                  },
+                  "inputMint": {
+                    "type": "string",
+                    "description": "The mint address for the input token (e.g. 'So11111111111111111111111111111111111111112' for 'SOL')",
+                    "example": "So11111111111111111111111111111111111111112"
+                  },
+                  "leverage": {
+                    "type": "string",
+                    "description": "Leverage of the increase position. Either provide leverage or sizeUsdDelta. Max leverage for SOL is 100. Max leverage for BTC / ETH is 150",
+                    "example": "10"
+                  },
+                  "marketMint": {
+                    "type": "string",
+                    "enum": [
+                      "So11111111111111111111111111111111111111112",
+                      "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+                      "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh"
+                    ],
+                    "description": "The asset or market to trade against. Required when opening a new position. 'SOL' = 'So11111111111111111111111111111111111111112', 'ETH' = '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs', 'BTC' = '3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh'",
+                    "example": "So11111111111111111111111111111111111111112"
+                  },
+                  "maxSlippageBps": {
+                    "type": "string",
+                    "description": "The maximum slippage in (BPS) for the custody token price when executing the decrease position trade",
+                    "example": "100"
+                  },
+                  "includeSerializedTx": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Sets whether to return a serialized transaction (`serializedTxBase64`) in the response"
+                  },
+                  "side": {
+                    "type": "string",
+                    "enum": [
+                      "long",
+                      "short"
+                    ],
+                    "description": "Required when opening a new position"
+                  },
+                  "sizeUsdDelta": {
+                    "type": "string",
+                    "description": "The amount in USD to increase the position size by. Must be an integer representing the USD amount multiplied by 10^6 (1 million) to align with the 6 decimal places used for USDC/USDT tokens on-chain. For example, to increase the position size by $10 USD, set 'sizeUsdDelta' to 10000000; for $0.50 USD, set 'sizeUsdDelta' to 500000. Either provide leverage or sizeUsdDelta.",
+                    "example": "10000000"
+                  },
+                  "walletAddress": {
+                    "type": "string",
+                    "description": "The wallet address / public key for the trader, Required when opening a new position."
+                  }
+                },
+                "required": [
+                  "collateralMint",
+                  "collateralTokenDelta",
+                  "inputMint",
+                  "marketMint",
+                  "maxSlippageBps",
+                  "side"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "positionPubkey": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "The unique identifier (i.e. a program derived address) for the position account. Use this address to find the position account onchain."
+                    },
+                    "positionRequestPubkey": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "The unique identifier (i.e. a program derived address) for the position request. Use this address to find the position request account onchain"
+                    },
+                    "quote": {
+                      "type": "object",
+                      "properties": {
+                        "collateralLessThanFees": {
+                          "type": "boolean",
+                          "description": "When true, this means the trade's collateral is not enough to cover the fees required to execute the trade, causing the trade size to be zero (equivalent to a collateral deposit).",
+                          "example": true
+                        },
+                        "entryPriceUsd": {
+                          "type": "string",
+                          "description": "The entry price (USD) for the position",
+                          "example": "2.99"
+                        },
+                        "leverage": {
+                          "type": "string",
+                          "description": "The leverage amount for the position",
+                          "example": "2.99"
+                        },
+                        "liquidationPriceUsd": {
+                          "type": "string",
+                          "description": "The liquidation price (USD) for the position",
+                          "example": "13.24"
+                        },
+                        "openFeeUsd": {
+                          "type": "string",
+                          "description": "The total fee (USD) for opening the position or depositing collateral to the position including base fees, borrowing fees, and price impact fees",
+                          "example": "0.0063"
+                        },
+                        "outstandingBorrowFeeUsd": {
+                          "type": "string",
+                          "description": "The outstanding borrow fees due / to be paid on depositing collateral to the position",
+                          "example": "0.1000"
+                        },
+                        "positionCollateralSizeUsd": {
+                          "type": "string",
+                          "description": "The total position collateral size (USD)",
+                          "example": "1124.45"
+                        },
+                        "positionSizeTokenAmount": {
+                          "type": "string",
+                          "description": "The total position size in the underlying collateral token's token amount including leverage",
+                          "example": "112445000"
+                        },
+                        "positionSizeUsd": {
+                          "type": "string",
+                          "description": "The total position size (USD) including leverage",
+                          "example": "1124.45"
+                        },
+                        "priceImpactFeeBps": {
+                          "type": "string",
+                          "description": "The price impact fee bps for opening the position based on the position size. For more info on how the price impact fee calculation works: https://www.jupresear.ch/t/jupiter-perpetuals-price-impact-fee-mechanism/17140",
+                          "example": "1.3301"
+                        },
+                        "priceImpactFeeUsd": {
+                          "type": "string",
+                          "description": "The price impact fee (USD) for opening the position based on the position size. For more info on how the price impact fee calculation works: https://www.jupresear.ch/t/jupiter-perpetuals-price-impact-fee-mechanism/17140",
+                          "example": "1.3301"
+                        },
+                        "quoteOutAmount": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "The output amount from Jupiter's quote for the collateral token if a token swap is required (i.e. if the `inputMint` is not the same as the collateral mint)"
+                        },
+                        "quotePriceSlippagePct": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "The price slippage percentage from Jupiter's quote if a token swap is required (i.e. if the `inputMint` is not the same as the collateral mint)"
+                        },
+                        "quoteSlippageBps": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "The slippage (BPS) from Jupiter's quote if a token swap is required (i.e. if the `inputMint` is not the same as the collateral mint)"
+                        },
+                        "side": {
+                          "type": "string",
+                          "enum": [
+                            "long",
+                            "short"
+                          ],
+                          "description": "The position side",
+                          "example": "long"
+                        },
+                        "sizeTokenDelta": {
+                          "type": "string",
+                          "description": "The change in the position's size in the token amount for the position's collateral token.",
+                          "example": "14420000"
+                        },
+                        "sizeUsdDelta": {
+                          "type": "string",
+                          "description": "The change in the position's size in USD.",
+                          "example": "1124.45"
+                        }
+                      },
+                      "required": [
+                        "collateralLessThanFees",
+                        "entryPriceUsd",
+                        "leverage",
+                        "liquidationPriceUsd",
+                        "openFeeUsd",
+                        "outstandingBorrowFeeUsd",
+                        "positionCollateralSizeUsd",
+                        "positionSizeTokenAmount",
+                        "positionSizeUsd",
+                        "priceImpactFeeBps",
+                        "priceImpactFeeUsd",
+                        "quoteOutAmount",
+                        "quotePriceSlippagePct",
+                        "quoteSlippageBps",
+                        "side",
+                        "sizeTokenDelta",
+                        "sizeUsdDelta"
+                      ]
+                    },
+                    "requireKeeperSignature": {
+                      "type": "boolean",
+                      "description": ""
+                    },
+                    "serializedTxBase64": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "The serialized transaction (base64 encoded) containing the instructions and given parameters for the increase position request. The transaction can be deserialized, signed by the owner of `walletAddress` and submitted onchain to execute the increase position request"
+                    },
+                    "txMetadata": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "blockhash": {
+                          "type": "string",
+                          "description": "The blockhash used for the serialized transaction. This blockhash must be used when submitting the signed increase position transaction."
+                        },
+                        "lastValidBlockHeight": {
+                          "type": "string",
+                          "description": "The block height used for the serialized transaction. This block height must be used when submitting the signed increase position transaction."
+                        },
+                        "transactionFeeLamports": {
+                          "type": "string",
+                          "description": "The transaction fee (in lamports) in decimal format.",
+                          "example": "0.5"
+                        },
+                        "accountRentLamports": {
+                          "type": "string",
+                          "description": "The account rent (in lamports) for the transaction",
+                          "example": "0.5"
+                        }
+                      },
+                      "required": [
+                        "blockhash",
+                        "lastValidBlockHeight",
+                        "transactionFeeLamports",
+                        "accountRentLamports"
+                      ],
+                      "description": "Contains relevant metadata for the serialized transaction. Null if no wallet address passed in."
+                    }
+                  },
+                  "required": [
+                    "positionPubkey",
+                    "positionRequestPubkey",
+                    "quote",
+                    "requireKeeperSignature",
+                    "serializedTxBase64",
+                    "txMetadata"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pool-info": {
+      "description": "Fetches the perpetuals base pool config info for the given market",
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mint",
+            "description": "The token mint address for the perpetuals market",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "So11111111111111111111111111111111111111112",
+                "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+                "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh"
+              ],
+              "description": "The token mint address for the perpetuals market"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "longAvailableLiquidity": {
+                      "type": "string",
+                      "description": "USD value of the available liquidity for long positions for the market",
+                      "example": "2500000"
+                    },
+                    "longBorrowRatePercent": {
+                      "type": "string",
+                      "description": "Base borrow rate (%) for long positions. More info on how the borrow rate is calculated here: https://station.jup.ag/guides/perpetual-exchange/how-it-works#hourly-borrow-rate",
+                      "example": "0.0026"
+                    },
+                    "longUtilizationPercent": {
+                      "type": "string",
+                      "description": "Utilization rate (%) for long positions",
+                      "example": "26.00"
+                    },
+                    "shortAvailableLiquidity": {
+                      "type": "string",
+                      "description": "USD value of the available liquidity for short positions for the market",
+                      "example": "2500000"
+                    },
+                    "shortBorrowRatePercent": {
+                      "type": "string",
+                      "description": "Base borrow rate (%) for short positions. More info on how the borrow rate is calculated here: https://station.jup.ag/guides/perpetual-exchange/how-it-works#hourly-borrow-rate",
+                      "example": "0.0026"
+                    },
+                    "shortUtilizationPercent": {
+                      "type": "string",
+                      "description": "Utilization rate (%) for short positions",
+                      "example": "26.00"
+                    },
+                    "openFeePercent": {
+                      "type": "string",
+                      "description": "Base open fee (%) for the market",
+                      "example": "0.06"
+                    },
+                    "maxRequestExecutionSec": {
+                      "type": "string",
+                      "description": "The maximum duration that a position request can be active (in seconds) before it is considered invalid."
+                    },
+                    "maxPriceImpactFeePercent": {
+                      "type": "string",
+                      "description": "The maximum price impact fee (%)"
+                    }
+                  },
+                  "required": [
+                    "longAvailableLiquidity",
+                    "longBorrowRatePercent",
+                    "longUtilizationPercent",
+                    "shortAvailableLiquidity",
+                    "shortBorrowRatePercent",
+                    "shortUtilizationPercent",
+                    "openFeePercent",
+                    "maxRequestExecutionSec",
+                    "maxPriceImpactFeePercent"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trades": {
+      "description": "Fetches the trade history for the given wallet address",
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "action",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Increase",
+                "Decrease"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "createdAtAfter",
+            "description": "Fetches trades with a 'createdAt' date that is greater or equal to the given 'createdAtAfter' UNIX timestamp'",
+            "schema": {
+              "type": "string",
+              "description": "Fetches trades with a 'createdAt' date that is greater or equal to the given 'createdAtAfter' UNIX timestamp'"
+            }
+          },
+          {
+            "in": "query",
+            "name": "createdAtBefore",
+            "description": "Fetches trades with a 'createdAt' date that is less than the given 'createdAtBefore' UNIX timestamp'",
+            "schema": {
+              "type": "string",
+              "description": "Fetches trades with a 'createdAt' date that is less than the given 'createdAtBefore' UNIX timestamp'"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "description": "The index of the last row to retrieve. This parameter specifies the ending point for fetching rows from the dataset. It is exclusive, meaning that the row at this index will not be included in the results.",
+            "schema": {
+              "type": "number",
+              "default": 20,
+              "description": "The index of the last row to retrieve. This parameter specifies the ending point for fetching rows from the dataset. It is exclusive, meaning that the row at this index will not be included in the results."
+            }
+          },
+          {
+            "in": "query",
+            "name": "mint",
+            "description": "Mint address for the underlying position of the trade",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "So11111111111111111111111111111111111111112",
+                "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+                "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh"
+              ],
+              "description": "Mint address for the underlying position of the trade"
+            }
+          },
+          {
+            "in": "query",
+            "name": "side",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "long",
+                "short"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "start",
+            "description": "The index of the first row to retrieve. This parameter specifies the starting point for fetching rows from the dataset. It is inclusive, meaning that the row at this index will be included in the results",
+            "schema": {
+              "type": "number",
+              "default": 0,
+              "description": "The index of the first row to retrieve. This parameter specifies the starting point for fetching rows from the dataset. It is inclusive, meaning that the row at this index will be included in the results"
+            }
+          },
+          {
+            "in": "query",
+            "name": "walletAddress",
+            "description": "Public key for the wallet to fetch trades",
+            "schema": {
+              "type": "string",
+              "description": "Public key for the wallet to fetch trades"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number"
+                    },
+                    "dataList": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "action": {
+                            "type": "string",
+                            "enum": [
+                              "Increase",
+                              "Decrease"
+                            ]
+                          },
+                          "collateralUsdDelta": {
+                            "type": "string",
+                            "description": "The collateral delta / change value (USD) for the trade. `collateralUsdDelta` is negative for collateral deposits and positive for collateral withdrawals",
+                            "example": "250.00"
+                          },
+                          "createdTime": {
+                            "type": "number",
+                            "description": "UNIX timestamp of when the trade was created",
+                            "example": 1722851463
+                          },
+                          "fee": {
+                            "type": "string",
+                            "description": "USD value of the fees paid for the trade",
+                            "example": "0.45"
+                          },
+                          "mint": {
+                            "type": "string",
+                            "enum": [
+                              "So11111111111111111111111111111111111111112",
+                              "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+                              "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh"
+                            ],
+                            "description": "Mint address for the underlying position of the trade"
+                          },
+                          "orderType": {
+                            "type": "string",
+                            "enum": [
+                              "Market",
+                              "Trigger",
+                              "Liquidation"
+                            ],
+                            "description": "'Market' orders are orders placed by the trader. 'Trigger' orders are orders executed by the keeper for TP/SL requests. 'Liquidation' orders are also executed by keeper when a position reaches its liquidation price"
+                          },
+                          "pnl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "description": "USD value of the trade profit / loss. The PNL value shown is before fees (i.e. it does not minus opening, closing, borrowing, and price impact fees). 'pnlUsd' is null for collateral deposits and withdrawals as the realised PNL is unchanged",
+                            "example": "24.13"
+                          },
+                          "pnlPercentage": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "description": "PNL percentage of the trade profit / loss. The PNL percentage shown is before fees (i.e. it does not minus opening, closing, borrowing, and price impact fees). 'pnlPercentage' is null for collateral deposits and withdrawals as the realised PNL is unchanged",
+                            "example": "24.13"
+                          },
+                          "positionName": {
+                            "type": "string",
+                            "enum": [
+                              "SOL-PERP",
+                              "ETH-PERP",
+                              "BTC-PERP"
+                            ]
+                          },
+                          "price": {
+                            "type": "string",
+                            "description": "USD value of the position's entry price",
+                            "example": "123.45"
+                          },
+                          "side": {
+                            "type": "string",
+                            "enum": [
+                              "long",
+                              "short"
+                            ]
+                          },
+                          "size": {
+                            "type": "string",
+                            "description": "USD value of the position's trade size (including leverage)",
+                            "example": "12345.68"
+                          },
+                          "txHash": {
+                            "type": "string",
+                            "description": "Transaction ID for the trade",
+                            "example": "4sjjb5kKAWAtXg1MQausgyqDx1Q5mU79a6EigxjjLYmCqBrNUE123XuoKr7Qir6ahBbLoSLLzT8gznxC2cgss5gR"
+                          },
+                          "updatedTime": {
+                            "type": "number",
+                            "example": 1722851463
+                          }
+                        },
+                        "required": [
+                          "action",
+                          "collateralUsdDelta",
+                          "createdTime",
+                          "fee",
+                          "mint",
+                          "orderType",
+                          "positionName",
+                          "price",
+                          "side",
+                          "size",
+                          "txHash",
+                          "updatedTime"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "count",
+                    "dataList"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tpsl/request": {
+      "description": "Request for a serialized transaction to create a TP / SL request",
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "owner",
+            "description": "The public key for owner of the position.",
+            "schema": {
+              "type": "string",
+              "description": "The public key for owner of the position.",
+              "example": "5HHB8sCKjWPU2zr3p4Lg49mQiaPQiHbCjHW7jgVzp583"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "positionPubkey",
+            "description": "The public key for the open position. Use the `GET positions` endpoint to fetch the public key for the trader's open positions.",
+            "schema": {
+              "type": "string",
+              "description": "The public key for the open position. Use the `GET positions` endpoint to fetch the public key for the trader's open positions.",
+              "example": "5HHB8sCKjWPU2zr3p4Lg49mQiaPQiHbCjHW7jgVzp583"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "sl",
+            "description": "Stop loss request",
+            "schema": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "counter": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The counter integer used to generate the position request PDA, only required when creating new TPSL",
+                  "example": "100000"
+                },
+                "desiredMint": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "So11111111111111111111111111111111111111112",
+                    "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+                    "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+                    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                  ],
+                  "description": "The mint address for the token used when withdrawing collateral or closing position when the TPSL is executed.",
+                  "example": "So11111111111111111111111111111111111111112"
+                },
+                "positionRequestPubkey": {
+                  "type": "string",
+                  "description": "Position request public key / PDA"
+                },
+                "triggerPrice": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Trigger price at which the TP / SL request will be executed. The value must be an integer corresponding to 6 decimal places. For example, to set a trigger price of $20, pass in 20000000",
+                  "example": "20000000"
+                }
+              },
+              "required": [
+                "positionRequestPubkey"
+              ],
+              "description": "Stop loss request"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tp",
+            "description": "Take profit request",
+            "schema": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "counter": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The counter integer used to generate the position request PDA, only required when creating new TPSL",
+                  "example": "100000"
+                },
+                "desiredMint": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "So11111111111111111111111111111111111111112",
+                    "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+                    "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+                    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                  ],
+                  "description": "The mint address for the token used when withdrawing collateral or closing position when the TPSL is executed.",
+                  "example": "So11111111111111111111111111111111111111112"
+                },
+                "positionRequestPubkey": {
+                  "type": "string",
+                  "description": "Position request public key / PDA"
+                },
+                "triggerPrice": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Trigger price at which the TP / SL request will be executed. The value must be an integer corresponding to 6 decimal places. For example, to set a trigger price of $20, pass in 20000000",
+                  "example": "20000000"
+                }
+              },
+              "required": [
+                "positionRequestPubkey"
+              ],
+              "description": "Take profit request"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "requireKeeperSignature": {
+                      "type": "boolean",
+                      "description": ""
+                    },
+                    "serializedTxBase64": {
+                      "type": "string",
+                      "description": "The serialized transaction (base64 encoded) containing the instructions and given parameters for the decrease position request. The transaction can be deserialized, signed by the owner of `walletAddress` and submitted onchain to execute the decrease position request"
+                    },
+                    "txMetadata": {
+                      "type": "object",
+                      "properties": {
+                        "blockhash": {
+                          "type": "string",
+                          "description": "The blockhash used for the serialized transaction. This blockhash must be used when submitting the signed decrease position transaction."
+                        },
+                        "lastValidBlockHeight": {
+                          "type": "string",
+                          "description": "The block height used for the serialized transaction. This block height must be used when submitting the signed decrease position transaction."
+                        },
+                        "transactionFeeLamports": {
+                          "type": "string",
+                          "description": "The transaction fee (in lamports) in decimal format.",
+                          "example": "0.5"
+                        },
+                        "accountRentLamports": {
+                          "type": "string",
+                          "description": "The account rent (in lamports) for the transaction",
+                          "example": "0.5"
+                        }
+                      },
+                      "required": [
+                        "blockhash",
+                        "lastValidBlockHeight",
+                        "transactionFeeLamports",
+                        "accountRentLamports"
+                      ],
+                      "description": "Contains relevant metadata for the serialized transaction."
+                    }
+                  },
+                  "required": [
+                    "requireKeeperSignature",
+                    "serializedTxBase64",
+                    "txMetadata"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tpsl": {
+      "description": "Returns a serialized transaction to create a TP/SL",
+      "delete": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "positionRequestPubkey": {
+                    "type": "string",
+                    "description": "The public key for the TP / SL request",
+                    "example": "5HHB8sCKjWPU2zr3p4Lg49mQiaPQiHbCjHW7jgVzp583"
+                  }
+                },
+                "required": [
+                  "positionRequestPubkey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "requireKeeperSignature": {
+                      "type": "boolean",
+                      "description": "When `requireKeeperSignature` is true, the transaction must be signed, serialized, and sent to the the `POST /transaction/execute` endpoint to execute the transaction. When `requireKeeperSignature` is `false`, the transaction can be submitted through the `sendTransaction` RPC call as usual"
+                    },
+                    "serializedTxBase64": {
+                      "type": "string",
+                      "description": "The serialized transaction (base64 encoded) containing the instructions and given parameters for the decrease position request. The transaction can be deserialized, signed by the owner of `walletAddress` and submitted onchain to execute the decrease position request"
+                    },
+                    "transactionType": {
+                      "type": "string",
+                      "enum": [
+                        "legacy"
+                      ],
+                      "description": "Returns the type of serialized transaction to execute the action. If the transaction type is `legacy`, the transaction must be submitted by the client itself through the RPC. If the transaction type is `instant`, the transaction must be sent to the `POST /transaction/execute` endpoint."
+                    },
+                    "txMetadata": {
+                      "type": "object",
+                      "properties": {
+                        "blockhash": {
+                          "type": "string",
+                          "description": "The blockhash used for the serialized transaction. This blockhash must be used when submitting the signed decrease position transaction."
+                        },
+                        "lastValidBlockHeight": {
+                          "type": "string",
+                          "description": "The block height used for the serialized transaction. This block height must be used when submitting the signed decrease position transaction."
+                        },
+                        "transactionFeeLamports": {
+                          "type": "string",
+                          "description": "The transaction fee (in lamports) in decimal format.",
+                          "example": "0.5"
+                        },
+                        "accountRentLamports": {
+                          "type": "string",
+                          "description": "The account rent (in lamports) for the transaction",
+                          "example": "0.5"
+                        }
+                      },
+                      "required": [
+                        "blockhash",
+                        "lastValidBlockHeight",
+                        "transactionFeeLamports",
+                        "accountRentLamports"
+                      ],
+                      "description": "Contains relevant metadata for the serialized transaction."
+                    }
+                  },
+                  "required": [
+                    "requireKeeperSignature",
+                    "serializedTxBase64",
+                    "transactionType",
+                    "txMetadata"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "owner": {
+                    "type": "string",
+                    "description": "The public key for owner of the position.",
+                    "example": "5HHB8sCKjWPU2zr3p4Lg49mQiaPQiHbCjHW7jgVzp583"
+                  },
+                  "positionPubkey": {
+                    "type": "string",
+                    "description": "The public key for the open position. Use the `GET positions` endpoint to fetch the public key for the trader's open positions.",
+                    "example": "5HHB8sCKjWPU2zr3p4Lg49mQiaPQiHbCjHW7jgVzp583"
+                  },
+                  "desiredMint": {
+                    "type": "string",
+                    "enum": [
+                      "So11111111111111111111111111111111111111112",
+                      "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+                      "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+                      "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                      "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                    ],
+                    "description": "The mint address for the token used when withdrawing collateral or closing position when the TPSL is executed."
+                  },
+                  "sizeUsdDelta": {
+                    "type": "string",
+                    "description": "The amount in USD to decrease the position size by. Must be an integer representing the USD amount multiplied by 10^6 (1 million) to align with the 6 decimal places used for the USDC mint on-chain. For example, to decrease by $10 USD, set 'sizeUsdDelta' to 10000000; for $20.50 USD, set 'sizeUsdDelta' to 20500000.",
+                    "example": "10000000"
+                  },
+                  "triggerPrice": {
+                    "type": "string",
+                    "description": "Trigger price at which the TP / SL request will be executed. The value must be an integer corresponding to 6 decimal places. For example, to set a trigger price of $20, pass in 20000000",
+                    "example": "20000000"
+                  },
+                  "requestType": {
+                    "type": "string",
+                    "enum": [
+                      "tp",
+                      "sl"
+                    ],
+                    "description": "Pass in `tp` to set a take profit request or `sl` to set a stop loss request"
+                  },
+                  "transactionType": {
+                    "type": "string",
+                    "enum": [
+                      "legacy",
+                      "mixed",
+                      "instant"
+                    ],
+                    "default": "mixed",
+                    "description": "Sets the type of serialized transaction to execute the action. If the transaction type is `legacy`, the transaction must be submitted by the client itself through the RPC. If the transaction type is `instant`, the transaction must be sent to the `POST /transaction/execute` endpoint. If the transaction type is `mixed`, the `transactionType` returned in the response will be either `legacy` or `instant`."
+                  }
+                },
+                "required": [
+                  "owner",
+                  "positionPubkey",
+                  "desiredMint",
+                  "sizeUsdDelta",
+                  "triggerPrice",
+                  "requestType"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "positionRequestPubkey": {
+                      "type": "string",
+                      "description": "The position request account pubkey for the TP / SL"
+                    },
+                    "requireKeeperSignature": {
+                      "type": "boolean",
+                      "description": "When `requireKeeperSignature` is true, the transaction must be signed, serialized, and sent to the the `POST /transaction/execute` endpoint to execute the transaction. When `requireKeeperSignature` is `false`, the transaction can be submitted through the `sendTransaction` RPC call as usual"
+                    },
+                    "serializedTxBase64": {
+                      "type": "string",
+                      "description": "The serialized transaction (base64 encoded) containing the instructions and given parameters for the decrease position request. The transaction can be deserialized, signed by the owner of `walletAddress` and submitted onchain to execute the decrease position request"
+                    },
+                    "transactionType": {
+                      "type": "string",
+                      "enum": [
+                        "legacy",
+                        "instant"
+                      ],
+                      "description": "Returns the type of serialized transaction to execute the action. If the transaction type is `legacy`, the transaction must be submitted by the client itself through the RPC. If the transaction type is `instant`, the transaction must be sent to the `POST /transaction/execute` endpoint."
+                    },
+                    "txMetadata": {
+                      "type": "object",
+                      "properties": {
+                        "blockhash": {
+                          "type": "string",
+                          "description": "The blockhash used for the serialized transaction. This blockhash must be used when submitting the signed decrease position transaction."
+                        },
+                        "lastValidBlockHeight": {
+                          "type": "string",
+                          "description": "The block height used for the serialized transaction. This block height must be used when submitting the signed decrease position transaction."
+                        },
+                        "transactionFeeLamports": {
+                          "type": "string",
+                          "description": "The transaction fee (in lamports) in decimal format.",
+                          "example": "0.5"
+                        },
+                        "accountRentLamports": {
+                          "type": "string",
+                          "description": "The account rent (in lamports) for the transaction",
+                          "example": "0.5"
+                        }
+                      },
+                      "required": [
+                        "blockhash",
+                        "lastValidBlockHeight",
+                        "transactionFeeLamports",
+                        "accountRentLamports"
+                      ],
+                      "description": "Contains relevant metadata for the serialized transaction."
+                    }
+                  },
+                  "required": [
+                    "positionRequestPubkey",
+                    "requireKeeperSignature",
+                    "serializedTxBase64",
+                    "transactionType",
+                    "txMetadata"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "positionRequestPubkey": {
+                    "type": "string",
+                    "description": "The public key for the TP / SL request",
+                    "example": "5HHB8sCKjWPU2zr3p4Lg49mQiaPQiHbCjHW7jgVzp583"
+                  },
+                  "triggerPrice": {
+                    "type": "string",
+                    "description": "Trigger price at which the TP / SL request will be executed. The value must be an integer corresponding to 6 decimal places. For example, to set a trigger price of $20, pass in 20000000",
+                    "example": "20000000"
+                  },
+                  "transactionType": {
+                    "type": "string",
+                    "enum": [
+                      "legacy",
+                      "mixed",
+                      "instant"
+                    ],
+                    "default": "mixed",
+                    "description": "Sets the type of serialized transaction to execute the action. If the transaction type is `legacy`, the transaction must be submitted by the client itself through the RPC. If the transaction type is `instant`, the transaction must be sent to the `POST /transaction/execute` endpoint. If the transaction type is `mixed`, the `transactionType` returned in the response will be either `legacy` or `instant`."
+                  }
+                },
+                "required": [
+                  "positionRequestPubkey",
+                  "triggerPrice"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "requireKeeperSignature": {
+                      "type": "boolean",
+                      "description": "When `requireKeeperSignature` is true, the transaction must be signed, serialized, and sent to the the `POST /transaction/execute` endpoint to execute the transaction. When `requireKeeperSignature` is `false`, the transaction can be submitted through the `sendTransaction` RPC call as usual"
+                    },
+                    "serializedTxBase64": {
+                      "type": "string",
+                      "description": "The serialized transaction (base64 encoded) containing the instructions and given parameters for the decrease position request. The transaction can be deserialized, signed by the owner of `walletAddress` and submitted onchain to execute the decrease position request"
+                    },
+                    "transactionType": {
+                      "type": "string",
+                      "enum": [
+                        "legacy",
+                        "instant"
+                      ],
+                      "description": "Returns the type of serialized transaction to execute the action. If the transaction type is `legacy`, the transaction must be submitted by the client itself through the RPC. If the transaction type is `instant`, the transaction must be sent to the `POST /transaction/execute` endpoint."
+                    },
+                    "txMetadata": {
+                      "type": "object",
+                      "properties": {
+                        "blockhash": {
+                          "type": "string",
+                          "description": "The blockhash used for the serialized transaction. This blockhash must be used when submitting the signed decrease position transaction."
+                        },
+                        "lastValidBlockHeight": {
+                          "type": "string",
+                          "description": "The block height used for the serialized transaction. This block height must be used when submitting the signed decrease position transaction."
+                        },
+                        "transactionFeeLamports": {
+                          "type": "string",
+                          "description": "The transaction fee (in lamports) in decimal format.",
+                          "example": "0.5"
+                        },
+                        "accountRentLamports": {
+                          "type": "string",
+                          "description": "The account rent (in lamports) for the transaction",
+                          "example": "0.5"
+                        }
+                      },
+                      "required": [
+                        "blockhash",
+                        "lastValidBlockHeight",
+                        "transactionFeeLamports",
+                        "accountRentLamports"
+                      ],
+                      "description": "Contains relevant metadata for the serialized transaction."
+                    }
+                  },
+                  "required": [
+                    "requireKeeperSignature",
+                    "serializedTxBase64",
+                    "transactionType",
+                    "txMetadata"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tpsl-gasless": {
+      "description": "Gasless endpoint to create, update, or remove TPSL requests. The serialized transaction must be signed by the owner and sent to `POST /transaction/execute` to be executed by the keeper.",
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "owner": {
+                    "type": "string",
+                    "description": "The public key for owner of the position.",
+                    "example": "5HHB8sCKjWPU2zr3p4Lg49mQiaPQiHbCjHW7jgVzp583"
+                  },
+                  "positionPubkey": {
+                    "type": "string",
+                    "description": "The public key for the open position. Use the `GET positions` endpoint to fetch the public key for the trader's open positions.",
+                    "example": "5HHB8sCKjWPU2zr3p4Lg49mQiaPQiHbCjHW7jgVzp583"
+                  },
+                  "sl": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "counter": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "The counter integer used to generate the position request PDA, only required when creating new TPSL",
+                        "example": "100000"
+                      },
+                      "desiredMint": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "enum": [
+                          "So11111111111111111111111111111111111111112",
+                          "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+                          "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+                          "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                          "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                        ],
+                        "description": "The mint address for the token used when withdrawing collateral or closing position when the TPSL is executed.",
+                        "example": "So11111111111111111111111111111111111111112"
+                      },
+                      "positionRequestPubkey": {
+                        "type": "string",
+                        "description": "Position request public key / PDA"
+                      },
+                      "triggerPrice": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "Trigger price at which the TP / SL request will be executed. The value must be an integer corresponding to 6 decimal places. For example, to set a trigger price of $20, pass in 20000000",
+                        "example": "20000000"
+                      }
+                    },
+                    "required": [
+                      "positionRequestPubkey"
+                    ],
+                    "description": "Stop loss request"
+                  },
+                  "tp": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "counter": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "The counter integer used to generate the position request PDA, only required when creating new TPSL",
+                        "example": "100000"
+                      },
+                      "desiredMint": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "enum": [
+                          "So11111111111111111111111111111111111111112",
+                          "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+                          "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+                          "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                          "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                        ],
+                        "description": "The mint address for the token used when withdrawing collateral or closing position when the TPSL is executed.",
+                        "example": "So11111111111111111111111111111111111111112"
+                      },
+                      "positionRequestPubkey": {
+                        "type": "string",
+                        "description": "Position request public key / PDA"
+                      },
+                      "triggerPrice": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "Trigger price at which the TP / SL request will be executed. The value must be an integer corresponding to 6 decimal places. For example, to set a trigger price of $20, pass in 20000000",
+                        "example": "20000000"
+                      }
+                    },
+                    "required": [
+                      "positionRequestPubkey"
+                    ],
+                    "description": "Take profit request"
+                  }
+                },
+                "required": [
+                  "owner",
+                  "positionPubkey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "requireKeeperSignature": {
+                      "type": "boolean",
+                      "description": ""
+                    },
+                    "serializedTxBase64": {
+                      "type": "string",
+                      "description": "The serialized transaction (base64 encoded) containing the instructions and given parameters for the decrease position request. The transaction can be deserialized, signed by the owner of `walletAddress` and submitted onchain to execute the decrease position request"
+                    },
+                    "txMetadata": {
+                      "type": "object",
+                      "properties": {
+                        "blockhash": {
+                          "type": "string",
+                          "description": "The blockhash used for the serialized transaction. This blockhash must be used when submitting the signed decrease position transaction."
+                        },
+                        "lastValidBlockHeight": {
+                          "type": "string",
+                          "description": "The block height used for the serialized transaction. This block height must be used when submitting the signed decrease position transaction."
+                        },
+                        "transactionFeeLamports": {
+                          "type": "string",
+                          "description": "The transaction fee (in lamports) in decimal format.",
+                          "example": "0.5"
+                        },
+                        "accountRentLamports": {
+                          "type": "string",
+                          "description": "The account rent (in lamports) for the transaction",
+                          "example": "0.5"
+                        }
+                      },
+                      "required": [
+                        "blockhash",
+                        "lastValidBlockHeight",
+                        "transactionFeeLamports",
+                        "accountRentLamports"
+                      ],
+                      "description": "Contains relevant metadata for the serialized transaction."
+                    }
+                  },
+                  "required": [
+                    "requireKeeperSignature",
+                    "serializedTxBase64",
+                    "txMetadata"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404 Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422 Unprocessable entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "errorSchema": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "description": "Error object",
+        "example": {
+          "code": "http_error",
+          "message": "Invalid path /hello-world. Consult the OpenAPI documentation for the list of valid routes: https://perps-api.jup.ag/v1/docs"
+        }
+      }
+    }
+  }
+}

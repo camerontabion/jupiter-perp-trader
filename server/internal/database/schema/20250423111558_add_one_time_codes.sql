@@ -1,0 +1,11 @@
+-- +goose Up
+CREATE TABLE one_time_codes (
+	email VARCHAR(255) NOT NULL PRIMARY KEY,
+	code VARCHAR(255) NOT NULL,
+	expires_at TIMESTAMP NOT NULL,
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- +goose Down
+DROP TABLE one_time_codes;
