@@ -15,7 +15,7 @@ A perpetual futures trading interface built on the Jupiter Protocol.
 
 ## Features
 
-- Trade perpetual futures with up to 100x leverage
+- Trade perpetual futures
 - Support for multiple tokens (SOL, ETH, WBTC)
 - Real-time market data and position tracking
 - Take Profit/Stop Loss order management
